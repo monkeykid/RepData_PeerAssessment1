@@ -1,20 +1,113 @@
-# Reproducible Research: Peer Assessment 1
-
+#Reproducible Research - Peer Assessment 1
+========================================================
 
 ## Loading and preprocessing the data
+
+Load the data
+```{r}
+rawdata <- data.frame(read.csv("activity.csv"))
+head(rawdata)
+```
+
+Tidy data to exclude *NA*
+```{r}
+cleandata <- na.omit(rawdata)
+head(cleandata)
+```
+
 
 
 
 ## What is mean total number of steps taken per day?
 
+Grouping the total number of *steps* by *date* and plot the graphic.
+```{r}
+sumstep <- aggregate(cleandata$steps, list(date=cleandata$date), FUN=sum)
+head(sumstep)
+plot(sumstep$date, sumstep$x, type ="l")
+```
+
+Calculate and report the **mean** total number of steps taken per day
+```{r}
+mean1 <- aggregate(cleandata$steps, list(date=cleandata$date), mean)
+head(mean1)
+```
+
+Calculate and report the **median** total number of steps taken per day
+```{r}
+median1 <- aggregate(cleandata$steps, list(date=cleandata$date), median)
+head(median1)
+```
+
+
 
 
 ## What is the average daily activity pattern?
+
+Make a plot
+```{r}
+plot(cleandata$interval, cleandata$steps, type="l")
+```
+
+Calculate the interval base on the max of step
+```{r}
+approx(x=cleandata$steps, y=cleandata$interval, xout=max(cleandata$steps))
+```
+
 
 
 
 ## Imputing missing values
 
+### Calculate the number of **NA**
+```{r}
+s <- sum(is.na(rawdata))
+```
+The number of missing data is `r s`
+
+### Strategy for filling in missing values  
+Because the number of zero step is big (11014/17568) and the histogram is right skew so we cannot use the mean to fill in the blank. Instead we will use the **median** for the **NAs**.
+
+### Create a new dataset
+We can see that the **median** are all **0** then we can replace them all with **0**
+```{r}
+rawdata$steps[is.na(rawdata$steps)] <- 0
+tidydata <- rawdata
+head(tidydata)
+```
+
+### Make histogram, mean and median
+Like doing in the 2nd part, but replace **cleandata** with **tidydata**  
+Grouping the total number of *steps* by *date* and plot the graphic.
+```{r}
+sumstep <- aggregate(tidydata$steps, list(date=tidydata$date), FUN=sum)
+head(sumstep)
+plot(sumstep$date, sumstep$x, type ="l")
+```
+
+Calculate and report the **mean** total number of steps taken per day
+```{r}
+mean2 <- aggregate(tidydata$steps, list(date=tidydata$date), mean)
+head(mean2)
+```
+
+Calculate and report the **median** total number of steps taken per day
+```{r}
+median2 <- aggregate(tidydata$steps, list(date=tidydata$date), median)
+head(median2)
+```
+
+We can see that there is **NO** impact because the histogram is very right skew so when we added 0 to the dataset, mean and median is not changed.
+
+
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+```{r}
+library(openair)
+tidydata$weektime <- as.factor(ifelse(weekdays(as.Date(tidydata$date)) %in% c("Saturday","Sunday"),"weekend", "weekday"))
+head(tidydata)
+```
+
